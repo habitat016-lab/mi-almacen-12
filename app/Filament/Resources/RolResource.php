@@ -38,12 +38,12 @@ class RolResource extends Resource
             ->schema([
                 Forms\Components\Section::make('Asignar Rol')
                     ->schema([
-                        Forms\Components\Select::make('puesto_id')
-                            ->label('Puesto')
-                            ->options($puestos)
-                            ->searchable()
-                            ->required()
-                            ->placeholder('Selecciona un puesto'),
+                        Forms\Components\Select::make('cat_puesto_id')
+                        ->label('Puesto del Catálogo')
+                        ->relationship('catPuesto', 'nombre_puesto')
+                        ->searchable()
+                        ->preload()
+                        ->required(),
                         
                         Forms\Components\Textarea::make('observaciones')
                             ->label('Observaciones')

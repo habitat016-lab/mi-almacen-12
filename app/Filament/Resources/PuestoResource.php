@@ -138,6 +138,28 @@ class PuestoResource extends Resource
                                 Forms\Components\Toggle::make('activo')
                                     ->label('Puesto activo')
                                     ->default(true),
+
+Forms\Components\Select::make('id_area')
+    ->label('Área')
+    ->relationship('area', 'nombre_area')
+    ->searchable()
+    ->preload()
+    ->required()
+    ->createOptionForm([
+        Forms\Components\TextInput::make('nombre_area')
+            ->label('Nombre del área')
+            ->required()
+            ->unique('cat_areas', 'nombre_area'),
+        Forms\Components\Textarea::make('descripcion')
+            ->label('Descripción'),
+    ])
+    ->createOptionUsing(function (array $data) {
+        return \App\Models\CatArea::create($data);
+    })
+    ->prefix('🏢'),
+
+
+
                             ]),
                     ]),
             ]);
@@ -207,6 +229,14 @@ class PuestoResource extends Resource
                     ->label('NSS')
                     ->copyable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
+                    TextColumn::make('area.nombre_area')
+    ->label('Área')
+    ->searchable()
+    ->badge()
+    ->color('info'),
+
+
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('activo')

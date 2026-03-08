@@ -9,7 +9,7 @@ class Rol extends Model
     protected $table = 'roles';
     
     protected $fillable = [
-        'puesto_id',
+        'cat_puesto_id',
         'observaciones',
         'permisos',
     ];
@@ -18,9 +18,9 @@ class Rol extends Model
         'permisos' => 'array',
     ];
 
-    public function puesto()
+    public function catpuesto()
     {
-        return $this->belongsTo(Puesto::class, 'puesto_id');
+        return $this->belongsTo(catpuesto::class);
     }
     
     // Accessor para mostrar el nombre del puesto
