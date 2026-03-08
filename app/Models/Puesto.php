@@ -10,6 +10,7 @@ class Puesto extends Model
     
     protected $fillable = [
         'numero_empleado',
+        'id_gerencia',
         'id_area',
         'employee_id',
         'cat_puesto_id',
@@ -49,6 +50,9 @@ class Puesto extends Model
         return $this->belongsTo(CatArea::class, 'id_area');
     }
 
-
+    public function gerencia()
+{
+    return $this->belongsTo(CatGerencia::class, 'id_gerencia');
+}
 
 }

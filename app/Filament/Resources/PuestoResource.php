@@ -70,6 +70,25 @@ class PuestoResource extends Resource
                                         return \App\Models\CatPuesto::create($data);
                                     })
                                     ->prefix('💼'),
+
+                                    Forms\Components\Select::make('id_gerencia')
+    ->label('Gerencia')
+    ->relationship('gerencia', 'nombre_gerencia')
+    ->searchable()
+    ->preload()
+    ->required()
+    ->createOptionForm([
+        Forms\Components\TextInput::make('nombre_gerencia')
+            ->label('Nombre de la gerencia')
+            ->required()
+            ->unique('cat_gerencias', 'nombre_gerencia'),
+        Forms\Components\Textarea::make('descripcion')
+            ->label('Descripción'),
+    ])
+    ->createOptionUsing(function (array $data) {
+        return \App\Models\CatGerencia::create($data);
+    })
+    ->prefix('🏛️'),
                                 
                                 // SELECTOR DE DEPARTAMENTO CON BOTÓN PARA CREAR NUEVO
                                 Forms\Components\Select::make('cat_departamento_id')
@@ -117,17 +136,17 @@ class PuestoResource extends Resource
                                     ->prefix('🆔')
                                     ->placeholder('12345678901'),
                                 
-                                Forms\Components\TextInput::make('area')
-                                    ->label('Área')
-                                    ->required()
-                                    ->prefix('📌')
-                                    ->placeholder('Ej: Tecnología'),
+                                //Forms\Components\TextInput::make('area')
+                                   // ->label('Área')
+                                    //->required()
+                                    //->prefix('📌')
+                                    //->placeholder('Ej: Tecnología'),
                                 
-                                Forms\Components\TextInput::make('gerencia')
-                                    ->label('Gerencia')
-                                    ->required()
-                                    ->prefix('👔')
-                                    ->placeholder('Ej: Sistemas'),
+                                //Forms\Components\TextInput::make('gerencia')
+                                    //->label('Gerencia')
+                                    //->required()
+                                    //->prefix('👔')
+                                    //->placeholder('Ej: Sistemas'),
                                 
                                 Forms\Components\TextInput::make('motivo')
                                     ->label('Motivo')
