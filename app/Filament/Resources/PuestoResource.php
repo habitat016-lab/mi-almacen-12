@@ -4,14 +4,18 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PuestoResource\Pages;
 use App\Models\Puesto;
-use App\Models\CatDepartamento;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
+use App\Models\CatMotivo;
 
 class PuestoResource extends Resource
 {
@@ -33,13 +37,13 @@ class PuestoResource extends Resource
                     ->schema([
                         Forms\Components\Grid::make(2)
                             ->schema([
-                                Forms\Components\TextInput::make('numero_empleado')
+                                TextInput::make('numero_empleado')
                                     ->label('No. Empleado')
                                     ->prefix('🔢')
                                     ->placeholder('Ej: EMP001')
                                     ->required(),
                                 
-                                Forms\Components\Select::make('employee_id')
+                                Select::make('employee_id')
                                     ->label('Empleado')
                                     ->relationship('employee', 'nombres')
                                     ->searchable()
@@ -49,86 +53,77 @@ class PuestoResource extends Resource
                                         trim($record->nombres . ' ' . $record->apellido_paterno . ' ' . $record->apellido_materno)
                                     ),
                                 
-                                Forms\Components\Select::make('cat_puesto_id')
-                                    ->label('Puesto (Catálogo)')
+                                Select::make('cat_puesto_id')
+                                    ->label('Puesto')
                                     ->relationship('catPuesto', 'nombre_puesto')
                                     ->searchable()
                                     ->preload()
                                     ->required()
                                     ->createOptionForm([
-                                        Forms\Components\TextInput::make('nombre_puesto')
-                                            ->label('Nombre del nuevo puesto')
+                                        TextInput::make('nombre_puesto')
                                             ->required()
                                             ->unique(),
-                                        Forms\Components\Textarea::make('descripcion')
-                                            ->label('Descripción'),
+                                        Textarea::make('descripcion'),
                                         Forms\Components\Toggle::make('activo')
-                                            ->label('Activo')
                                             ->default(true),
                                     ])
-                                    ->createOptionUsing(function (array $data) {
-                                        return \App\Models\CatPuesto::create($data);
-                                    })
+                                    ->createOptionUsing(fn ($data) => \App\Models\CatPuesto::create($data))
                                     ->prefix('💼'),
 
-                                    Forms\Components\Select::make('id_gerencia')
-    ->label('Gerencia')
-    ->relationship('gerencia', 'nombre_gerencia')
-    ->searchable()
-    ->preload()
-    ->required()
-    ->createOptionForm([
-        Forms\Components\TextInput::make('nombre_gerencia')
-            ->label('Nombre de la gerencia')
-            ->required()
-            ->unique('cat_gerencias', 'nombre_gerencia'),
-        Forms\Components\Textarea::make('descripcion')
-            ->label('Descripción'),
-    ])
-    ->createOptionUsing(function (array $data) {
-        return \App\Models\CatGerencia::create($data);
-    })
-    ->prefix('🏛️'),
+                                Select::make('id_gerencia')
+                                    ->label('Gerencia')
+                                    ->relationship('gerencia', 'nombre_gerencia')
+                                    ->searchable()
+                                    ->preload()
+                                    ->required()
+                                    ->createOptionForm([
+                                        TextInput::make('nombre_gerencia')
+                                            ->required()
+                                            ->unique('cat_gerencias', 'nombre_gerencia'),
+                                        Textarea::make('descripcion'),
+                                    ])
+                                    ->createOptionUsing(fn ($data) => \App\Models\CatGerencia::create($data))
+                                    ->prefix('🏛️'),
                                 
-                                // SELECTOR DE DEPARTAMENTO CON BOTÓN PARA CREAR NUEVO
-                                Forms\Components\Select::make('cat_departamento_id')
+                                Select::make('cat_departamento_id')
                                     ->label('Departamento')
                                     ->relationship('catDepartamento', 'nombre_departamento')
                                     ->searchable()
                                     ->preload()
                                     ->required()
                                     ->createOptionForm([
-                                        Forms\Components\TextInput::make('nombre_departamento')
-                                            ->label('Nombre del nuevo departamento')
+                                        TextInput::make('nombre_departamento')
                                             ->required()
-                                            ->string()
                                             ->unique('cat_departamentos', 'nombre_departamento'),
-                                        Forms\Components\Textarea::make('descripcion')
-                                            ->label('Descripción'),
+                                        Textarea::make('descripcion'),
                                         Forms\Components\Toggle::make('activo')
-                                            ->label('Activo')
                                             ->default(true),
                                     ])
-
-                                    ->createOptionUsing(function (array $data) {
-                                        // Forzar que todos los valores sean strings con comillas
-                                        $departamento = \App\Models\CatDepartamento::create([
-                                        'nombre_departamento' => (string) $data['nombre_departamento'],
-                                        'descripcion' => isset($data['descripcion']) ? (string) $data['descripcion'] : null,
-                                        'activo' => $data['activo'] ?? true,
-                                        ]);
-                                        return $departamento;
-                                        })
-
+                                    ->createOptionUsing(fn ($data) => \App\Models\CatDepartamento::create($data))
                                     ->prefix('🏢'),
                                 
-                                Forms\Components\DatePicker::make('fecha_ingreso')
+                                Select::make('id_area')
+                                    ->label('Área')
+                                    ->relationship('area', 'nombre_area')
+                                    ->searchable()
+                                    ->preload()
+                                    ->required()
+                                    ->createOptionForm([
+                                        TextInput::make('nombre_area')
+                                            ->required()
+                                            ->unique('cat_areas', 'nombre_area'),
+                                        Textarea::make('descripcion'),
+                                    ])
+                                    ->createOptionUsing(fn ($data) => \App\Models\CatArea::create($data))
+                                    ->prefix('🏢'),
+                                
+                                DatePicker::make('fecha_ingreso')
                                     ->label('Fecha de ingreso')
                                     ->required()
                                     ->prefix('📅')
                                     ->displayFormat('d/m/Y'),
                                 
-                                Forms\Components\TextInput::make('nss')
+                                TextInput::make('nss')
                                     ->label('NSS')
                                     ->required()
                                     ->maxLength(11)
@@ -136,49 +131,24 @@ class PuestoResource extends Resource
                                     ->prefix('🆔')
                                     ->placeholder('12345678901'),
                                 
-                                //Forms\Components\TextInput::make('area')
-                                   // ->label('Área')
-                                    //->required()
-                                    //->prefix('📌')
-                                    //->placeholder('Ej: Tecnología'),
-                                
-                                //Forms\Components\TextInput::make('gerencia')
-                                    //->label('Gerencia')
-                                    //->required()
-                                    //->prefix('👔')
-                                    //->placeholder('Ej: Sistemas'),
-                                
-                                Forms\Components\TextInput::make('motivo')
-                                    ->label('Motivo')
-                                    ->required()
-                                    ->prefix('📝')
-                                    ->placeholder('Ej: Nuevo ingreso, Promoción'),
-                                
                                 Forms\Components\Toggle::make('activo')
                                     ->label('Puesto activo')
                                     ->default(true),
 
-Forms\Components\Select::make('id_area')
-    ->label('Área')
-    ->relationship('area', 'nombre_area')
-    ->searchable()
-    ->preload()
-    ->required()
-    ->createOptionForm([
-        Forms\Components\TextInput::make('nombre_area')
-            ->label('Nombre del área')
-            ->required()
-            ->unique('cat_areas', 'nombre_area'),
-        Forms\Components\Textarea::make('descripcion')
-            ->label('Descripción'),
-    ])
-    ->createOptionUsing(function (array $data) {
-        return \App\Models\CatArea::create($data);
-    })
-    ->prefix('🏢'),
-
-
-
+                                Select::make('motivo_id')
+                                    ->label('Motivo de Asignación')
+                                    ->relationship('motivo', 'nombre_motivo')
+                                    ->nullable()
+                                    ->searchable()
+                                    ->preload()
+                                    ->placeholder('Selecciona un motivo')
+                                    ->createOptionForm([
+                                        TextInput::make('nombre_motivo')
+                                            ->required()
+                                            ->unique('cat_motivos', 'nombre_motivo'),
+                                        Textarea::make('descripcion'),
+                                    ])
+                                    ->createOptionUsing(fn ($data) => CatMotivo::create($data)),
                             ]),
                     ]),
             ]);
@@ -196,12 +166,11 @@ Forms\Components\Select::make('id_area')
                 
                 TextColumn::make('employee.nombre_completo')
                     ->label('Empleado')
-                    ->formatStateUsing(function ($record) {
-                        if (!$record->employee) return '—';
-                        return trim($record->employee->nombres . ' ' . 
-                                   $record->employee->apellido_paterno . ' ' . 
-                                   $record->employee->apellido_materno);
-                    })
+                    ->formatStateUsing(fn ($record) => 
+                        $record->employee 
+                            ? trim($record->employee->nombres . ' ' . $record->employee->apellido_paterno . ' ' . $record->employee->apellido_materno)
+                            : '—'
+                    )
                     ->searchable()
                     ->sortable(),
                 
@@ -211,9 +180,20 @@ Forms\Components\Select::make('id_area')
                     ->badge()
                     ->color('success'),
                 
-                // COLUMNA DEL DEPARTAMENTO DESDE CATÁLOGO
                 TextColumn::make('catDepartamento.nombre_departamento')
                     ->label('Departamento')
+                    ->searchable()
+                    ->badge()
+                    ->color('info'),
+                
+                TextColumn::make('area.nombre_area')
+                    ->label('Área')
+                    ->searchable()
+                    ->badge()
+                    ->color('info'),
+                
+                TextColumn::make('gerencia.nombre_gerencia')
+                    ->label('Gerencia')
                     ->searchable()
                     ->badge()
                     ->color('info'),
@@ -223,10 +203,11 @@ Forms\Components\Select::make('id_area')
                     ->date('d/m/Y')
                     ->sortable(),
                 
-                TextColumn::make('motivo')
+                TextColumn::make('motivo.nombre_motivo')
                     ->label('Motivo')
                     ->badge()
-                    ->color('warning'),
+                    ->color('warning')
+                    ->searchable(),
                 
                 IconColumn::make('activo')
                     ->label('Activo')
@@ -236,26 +217,10 @@ Forms\Components\Select::make('id_area')
                     ->trueColor('success')
                     ->falseColor('danger'),
                 
-                TextColumn::make('area')
-                    ->label('Área')
-                    ->toggleable(isToggledHiddenByDefault: true),
-                
-                TextColumn::make('gerencia')
-                    ->label('Gerencia')
-                    ->toggleable(isToggledHiddenByDefault: true),
-                
                 TextColumn::make('nss')
                     ->label('NSS')
                     ->copyable()
                     ->toggleable(isToggledHiddenByDefault: true),
-
-                    TextColumn::make('area.nombre_area')
-    ->label('Área')
-    ->searchable()
-    ->badge()
-    ->color('info'),
-
-
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('activo')
