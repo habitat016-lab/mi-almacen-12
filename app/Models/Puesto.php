@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Puesto extends Model
 {
@@ -21,38 +22,37 @@ class Puesto extends Model
         'activo',
     ];
 
-    // Relación con Employee
-    public function employee()
+    protected $casts = [
+        'fecha_ingreso' => 'date',
+        'activo' => 'boolean',
+    ];
+
+    public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class, 'employee_id');
     }
 
-    // Relación con CatPuesto
-    public function catPuesto()
+    public function catPuesto(): BelongsTo
     {
         return $this->belongsTo(CatPuesto::class, 'cat_puesto_id');
     }
 
-    // Relación con CatDepartamento
-    public function catDepartamento()
-    {
-        return $this->belongsTo(CatDepartamento::class, 'cat_departamento_id');
-    }
-
-    // Relación con CatArea
-    public function area()
-    {
-        return $this->belongsTo(CatArea::class, 'id_area');
-    }
-
-    // Relación con CatGerencia
-    public function gerencia()
+    public function gerencia(): BelongsTo
     {
         return $this->belongsTo(CatGerencia::class, 'id_gerencia');
     }
 
-    // Relación con CatMotivo
-    public function motivo()
+    public function catDepartamento(): BelongsTo
+    {
+        return $this->belongsTo(CatDepartamento::class, 'cat_departamento_id');
+    }
+
+    public function area(): BelongsTo
+    {
+        return $this->belongsTo(CatArea::class, 'id_area');
+    }
+
+    public function motivo(): BelongsTo
     {
         return $this->belongsTo(CatMotivo::class, 'motivo_id');
     }

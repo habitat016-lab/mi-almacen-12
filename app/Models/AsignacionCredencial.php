@@ -3,62 +3,35 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class AsignacionCredencial extends Authenticatable
+class AsignacionCredencial extends Model
 {
     protected $table = 'asignacion_credenciales';
-    
+
     protected $fillable = [
         'id_empleado',
         'id_puesto',
-        'correo_electronico',
         'id_asignacion_puesto',
+        'correo_electronico',
         'llave_acceso',
     ];
 
-    protected $hidden = [
-        'llave_acceso',
-    ];
-
-    protected $casts = [
-        'llave_acceso' => 'hashed',
-    ];
-
-    // Relaciones
-    public function empleado()
+    // Relación con empleados (para nombre completo)
+    public function empleado(): BelongsTo
     {
         return $this->belongsTo(Employee::class, 'id_empleado');
     }
 
-    public function puesto()
+    // Relación con catálogo de puestos (para nombre del puesto)
+    public function puesto(): BelongsTo
     {
         return $this->belongsTo(CatPuesto::class, 'id_puesto');
     }
 
-    public function asignacionPuesto()
+    // Relación con tabla puestos (para número de empleado)
+    public function asignacionPuesto(): BelongsTo
     {
         return $this->belongsTo(Puesto::class, 'id_asignacion_puesto');
-    }
-
-    // Accessors para UI
-    public function getNombreCompletoAttribute()
-    {
-        if (!$this->empleado) return 'Sin empleado';
-        return trim(
-            $this->empleado->nombres . ' ' . 
-            $this->empleado->apellido_paterno . ' ' . 
-            $this->empleado->apellido_materno
-        );
-    }
-
-    public function getNombrePuestoAttribute()
-    {
-        return $this->puesto ? $this->puesto->nombre_puesto : 'Sin puesto';
-    }
-
-    public function getNumeroEmpleadoAttribute()
-    {
-        return $this->asignacionPuesto ? $this->asignacionPuesto->numero_empleado : 'Sin asignación';
     }
 }

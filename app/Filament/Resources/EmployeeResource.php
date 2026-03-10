@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\EmployeeResource\Pages;
 use App\Models\Employee;
+use App\Models\Puesto;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -14,9 +15,7 @@ use Filament\Tables\Columns\TextColumn;
 class EmployeeResource extends Resource
 {
     protected static ?string $model = Employee::class;
-
     protected static ?string $navigationIcon = 'heroicon-o-users';
-    
     protected static ?string $navigationLabel = 'Empleados';
 
     public static function form(Form $form): Form
@@ -46,18 +45,15 @@ class EmployeeResource extends Resource
                 Forms\Components\Section::make('Datos Laborales')
                     ->schema([
                         Forms\Components\Select::make('puesto_id')
-                            ->label('Puesto')
-                            ->relationship('puesto', 'puesto')
+                            ->label('Asignación de Puesto')
+                            ->relationship('puesto', 'numero_empleado')
                             ->searchable()
                             ->preload()
-                            ->createOptionForm([
-                                Forms\Components\TextInput::make('puesto')->required(),
-                                Forms\Components\DatePicker::make('fecha_ingreso')->required(),
-                                Forms\Components\TextInput::make('nss')->required()->maxLength(11),
-                                Forms\Components\TextInput::make('area')->required(),
-                                Forms\Components\TextInput::make('departamento')->required(),
-                                Forms\Components\TextInput::make('gerencia')->required(),
-                            ]),
+                            ->getOptionLabelFromRecordUsing(fn ($record) => 
+                                $record->numero_empleado . ' - ' . 
+                                optional($record->catPuesto)->nombre_puesto
+                            )
+                            ->required(),
                     ]),
             ]);
     }
@@ -76,7 +72,7 @@ class EmployeeResource extends Resource
                     ->size('lg')
                     ->weight('bold'),
                 
-                TextColumn::make('puesto.puesto')
+                TextColumn::make('puesto.catPuesto.nombre_puesto')
                     ->label('Puesto')
                     ->badge()
                     ->color('success'),

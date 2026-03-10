@@ -6,9 +6,10 @@ use App\Filament\Resources\AsignacionCredencialResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
-class ListAsignacionCredencials extends ListRecords
+class ListAsignacionCredenciales extends ListRecords
 {
-    protected static string $resource = AsignacionCredencialResource::class;
+    protected static string $resource = 
+AsignacionCredencialResource::class;
 
     protected function getHeaderActions(): array
     {

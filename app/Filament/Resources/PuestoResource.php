@@ -16,6 +16,10 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
 use App\Models\CatMotivo;
+use App\Models\CatPuesto;
+use App\Models\CatArea;
+use App\Models\CatGerencia;
+use App\Models\CatDepartamento;
 
 class PuestoResource extends Resource
 {
@@ -37,12 +41,14 @@ class PuestoResource extends Resource
                     ->schema([
                         Forms\Components\Grid::make(2)
                             ->schema([
+                                // Número de Empleado
                                 TextInput::make('numero_empleado')
                                     ->label('No. Empleado')
                                     ->prefix('🔢')
                                     ->placeholder('Ej: EMP001')
                                     ->required(),
                                 
+                                // SELECT DE EMPLEADO (guarda employee_id)
                                 Select::make('employee_id')
                                     ->label('Empleado')
                                     ->relationship('employee', 'nombres')
@@ -53,6 +59,7 @@ class PuestoResource extends Resource
                                         trim($record->nombres . ' ' . $record->apellido_paterno . ' ' . $record->apellido_materno)
                                     ),
                                 
+                                // SELECT DE PUESTO (guarda cat_puesto_id)
                                 Select::make('cat_puesto_id')
                                     ->label('Puesto')
                                     ->relationship('catPuesto', 'nombre_puesto')
@@ -61,15 +68,19 @@ class PuestoResource extends Resource
                                     ->required()
                                     ->createOptionForm([
                                         TextInput::make('nombre_puesto')
+                                            ->label('Nombre del nuevo puesto')
                                             ->required()
-                                            ->unique(),
-                                        Textarea::make('descripcion'),
+                                            ->unique('cat_puestos', 'nombre_puesto'),
+                                        Textarea::make('descripcion')
+                                            ->label('Descripción'),
                                         Forms\Components\Toggle::make('activo')
+                                            ->label('Activo')
                                             ->default(true),
                                     ])
-                                    ->createOptionUsing(fn ($data) => \App\Models\CatPuesto::create($data))
+                                    ->createOptionUsing(fn (array $data): CatPuesto => CatPuesto::create($data))
                                     ->prefix('💼'),
 
+                                // SELECT DE GERENCIA (guarda id_gerencia)
                                 Select::make('id_gerencia')
                                     ->label('Gerencia')
                                     ->relationship('gerencia', 'nombre_gerencia')
@@ -78,13 +89,16 @@ class PuestoResource extends Resource
                                     ->required()
                                     ->createOptionForm([
                                         TextInput::make('nombre_gerencia')
+                                            ->label('Nombre de la gerencia')
                                             ->required()
                                             ->unique('cat_gerencias', 'nombre_gerencia'),
-                                        Textarea::make('descripcion'),
+                                        Textarea::make('descripcion')
+                                            ->label('Descripción'),
                                     ])
-                                    ->createOptionUsing(fn ($data) => \App\Models\CatGerencia::create($data))
+                                    ->createOptionUsing(fn (array $data): CatGerencia => CatGerencia::create($data))
                                     ->prefix('🏛️'),
                                 
+                                // SELECT DE DEPARTAMENTO (guarda cat_departamento_id)
                                 Select::make('cat_departamento_id')
                                     ->label('Departamento')
                                     ->relationship('catDepartamento', 'nombre_departamento')
@@ -93,15 +107,19 @@ class PuestoResource extends Resource
                                     ->required()
                                     ->createOptionForm([
                                         TextInput::make('nombre_departamento')
+                                            ->label('Nombre del nuevo departamento')
                                             ->required()
                                             ->unique('cat_departamentos', 'nombre_departamento'),
-                                        Textarea::make('descripcion'),
+                                        Textarea::make('descripcion')
+                                            ->label('Descripción'),
                                         Forms\Components\Toggle::make('activo')
+                                            ->label('Activo')
                                             ->default(true),
                                     ])
-                                    ->createOptionUsing(fn ($data) => \App\Models\CatDepartamento::create($data))
+                                    ->createOptionUsing(fn (array $data): CatDepartamento => CatDepartamento::create($data))
                                     ->prefix('🏢'),
                                 
+                                // SELECT DE ÁREA (guarda id_area)
                                 Select::make('id_area')
                                     ->label('Área')
                                     ->relationship('area', 'nombre_area')
@@ -110,19 +128,23 @@ class PuestoResource extends Resource
                                     ->required()
                                     ->createOptionForm([
                                         TextInput::make('nombre_area')
+                                            ->label('Nombre del área')
                                             ->required()
                                             ->unique('cat_areas', 'nombre_area'),
-                                        Textarea::make('descripcion'),
+                                        Textarea::make('descripcion')
+                                            ->label('Descripción'),
                                     ])
-                                    ->createOptionUsing(fn ($data) => \App\Models\CatArea::create($data))
+                                    ->createOptionUsing(fn (array $data): CatArea => CatArea::create($data))
                                     ->prefix('🏢'),
                                 
+                                // Fecha de ingreso
                                 DatePicker::make('fecha_ingreso')
                                     ->label('Fecha de ingreso')
                                     ->required()
                                     ->prefix('📅')
                                     ->displayFormat('d/m/Y'),
                                 
+                                // NSS
                                 TextInput::make('nss')
                                     ->label('NSS')
                                     ->required()
@@ -131,10 +153,12 @@ class PuestoResource extends Resource
                                     ->prefix('🆔')
                                     ->placeholder('12345678901'),
                                 
+                                // Activo
                                 Forms\Components\Toggle::make('activo')
                                     ->label('Puesto activo')
                                     ->default(true),
 
+                                // SELECT DE MOTIVO (guarda motivo_id)
                                 Select::make('motivo_id')
                                     ->label('Motivo de Asignación')
                                     ->relationship('motivo', 'nombre_motivo')
@@ -144,11 +168,13 @@ class PuestoResource extends Resource
                                     ->placeholder('Selecciona un motivo')
                                     ->createOptionForm([
                                         TextInput::make('nombre_motivo')
+                                            ->label('Nombre del motivo')
                                             ->required()
                                             ->unique('cat_motivos', 'nombre_motivo'),
-                                        Textarea::make('descripcion'),
+                                        Textarea::make('descripcion')
+                                            ->label('Descripción'),
                                     ])
-                                    ->createOptionUsing(fn ($data) => CatMotivo::create($data)),
+                                    ->createOptionUsing(fn (array $data): CatMotivo => CatMotivo::create($data)),
                             ]),
                     ]),
             ]);
@@ -166,35 +192,45 @@ class PuestoResource extends Resource
                 
                 TextColumn::make('employee.nombre_completo')
                     ->label('Empleado')
-                    ->formatStateUsing(fn ($record) => 
+                    ->formatStateUsing(fn ($record): string => 
                         $record->employee 
                             ? trim($record->employee->nombres . ' ' . $record->employee->apellido_paterno . ' ' . $record->employee->apellido_materno)
                             : '—'
                     )
-                    ->searchable()
+                    ->searchable(query: function ($query, $search): void {
+                        $query->whereHas('employee', function ($q) use ($search): void {
+                            $q->where('nombres', 'like', "%{$search}%")
+                              ->orWhere('apellido_paterno', 'like', "%{$search}%")
+                              ->orWhere('apellido_materno', 'like', "%{$search}%");
+                        });
+                    })
                     ->sortable(),
                 
                 TextColumn::make('catPuesto.nombre_puesto')
                     ->label('Puesto')
                     ->searchable()
+                    ->sortable()
                     ->badge()
                     ->color('success'),
                 
                 TextColumn::make('catDepartamento.nombre_departamento')
                     ->label('Departamento')
                     ->searchable()
+                    ->sortable()
                     ->badge()
                     ->color('info'),
                 
                 TextColumn::make('area.nombre_area')
                     ->label('Área')
                     ->searchable()
+                    ->sortable()
                     ->badge()
                     ->color('info'),
                 
                 TextColumn::make('gerencia.nombre_gerencia')
                     ->label('Gerencia')
                     ->searchable()
+                    ->sortable()
                     ->badge()
                     ->color('info'),
                 
@@ -207,7 +243,8 @@ class PuestoResource extends Resource
                     ->label('Motivo')
                     ->badge()
                     ->color('warning')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 
                 IconColumn::make('activo')
                     ->label('Activo')
@@ -229,6 +266,11 @@ class PuestoResource extends Resource
                         '1' => 'Activos',
                         '0' => 'Inactivos',
                     ]),
+                Tables\Filters\SelectFilter::make('cat_puesto_id')
+                    ->label('Puesto')
+                    ->relationship('catPuesto', 'nombre_puesto')
+                    ->searchable()
+                    ->preload(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

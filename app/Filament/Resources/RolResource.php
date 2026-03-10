@@ -2,80 +2,71 @@
 
 namespace App\Filament\Resources;
 
+use App\Services\PermisoService;
 use App\Filament\Resources\RolResource\Pages;
 use App\Models\Rol;
-use App\Models\Puesto;
+use App\Models\CatPuesto;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\ViewField;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
 
 class RolResource extends Resource
 {
     protected static ?string $model = Rol::class;
     protected static ?string $navigationIcon = 'heroicon-o-shield-check';
     protected static ?string $navigationLabel = 'Roles';
+    protected static ?string $navigationGroup = 'Seguridad';
 
     public static function form(Form $form): Form
     {
-        // OBTENER PUESTOS DIRECTAMENTE SIN MIERDAS
-        $puestos = [];
-        foreach (Puesto::with('employee', 'catPuesto')->get() as $puesto) {
-            $nombreEmpleado = trim(
-                ($puesto->employee->nombres ?? '') . ' ' . 
-                ($puesto->employee->apellido_paterno ?? '') . ' ' . 
-                ($puesto->employee->apellido_materno ?? '')
-            ) ?: 'Sin empleado';
-            
-            $nombrePuesto = $puesto->catPuesto->nombre_puesto ?? 'Sin nombre';
-            
-            $puestos[$puesto->id] = "ID:{$puesto->id} | {$nombrePuesto} | {$nombreEmpleado}";
-        }
-
         return $form
             ->schema([
-                Forms\Components\Section::make('Asignar Rol')
+                Section::make('Información del Rol')
                     ->schema([
-                        Forms\Components\Select::make('cat_puesto_id')
-                        ->label('Puesto del Catálogo')
-                        ->relationship('catPuesto', 'nombre_puesto')
-                        ->searchable()
-                        ->preload()
-                        ->required(),
-                        
-                        Forms\Components\Textarea::make('observaciones')
-                            ->label('Observaciones')
-                            ->rows(3),
-                        
-                        Forms\Components\Repeater::make('permisos')
-                            ->label('Permisos')
-                            ->schema([
-                                Forms\Components\Select::make('modelo')
-                                    ->label('Módulo')
-                                    ->options([
-                                        'Employee' => 'Empleados',
-                                        'Puesto' => 'Puestos',
-                                        'CatPuesto' => 'Catálogo Puestos',
-                                        'CatDepartamento' => 'Catálogo Departamentos',
-                                        'Rol' => 'Roles',
-                                    ])
-                                    ->required(),
-                                Forms\Components\CheckboxList::make('acciones')
-                                    ->label('Acciones')
-                                    ->options([
-                                        'view' => 'Ver',
-                                        'create' => 'Crear',
-                                        'update' => 'Editar',
-                                        'delete' => 'Eliminar',
-                                    ])
-                                    ->columns(2)
-                                    ->required(),
+                        Select::make('cat_puesto_id')
+                            ->label('Puesto')
+                            ->relationship('catPuesto', 'nombre_puesto')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                if ($state) {
+                                    $puesto = CatPuesto::find($state);
+                                    if ($puesto && $puesto->permisos) {
+                                        $set('permisos', $puesto->permisos);
+                                    }
+                                }
+                            })
+                            ->createOptionForm([
+                                Forms\Components\TextInput::make('nombre_puesto')
+                                    ->required()
+                                    ->unique('cat_puestos', 'nombre_puesto'),
+                                Forms\Components\Textarea::make('descripcion'),
+                                Forms\Components\Toggle::make('activo')->default(true),
                             ])
-                            ->defaultItems(1)
-                            ->columnSpanFull()
-                    ])
+                            ->createOptionUsing(fn (array $data) => CatPuesto::create($data)),
+                        
+                        Textarea::make('observaciones')
+                            ->label('Observaciones')
+                            ->rows(3)
+                            ->columnSpanFull(),
+                    ]),
+                
+                Section::make('Permisos')
+                    ->schema([
+                        ViewField::make('permisos')
+                            ->view('filament.forms.components.tabla-permisos')
+                            ->default(PermisoService::getDefaultPermisos()),
+                    ]),
             ]);
     }
 
@@ -83,27 +74,57 @@ class RolResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id')->label('ID'),
-                TextColumn::make('puesto_id')->label('ID Puesto'),
-                TextColumn::make('puesto.catPuesto.nombre_puesto')
+                TextColumn::make('catPuesto.nombre_puesto')
                     ->label('Puesto')
+                    ->searchable()
+                    ->sortable(),
+                
+                TextColumn::make('nivel_permisos')
+                    ->label('Nivel')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'admin' => 'success',
+                        'consultor' => 'info',
+                        'personalizado' => 'warning',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'admin' => '👑 Administrador',
+                        'consultor' => '👁️ Consultor',
+                        'personalizado' => '🔧 Personalizado',
+                        default => '⚪ Sin permisos',
+                    }),
+                
+                TextColumn::make('observaciones')
+                    ->label('Observaciones')
+                    ->limit(30)
+                    ->toggleable(),
+                
+                TextColumn::make('created_at')
+                    ->label('Creado')
+                    ->dateTime('d/m/Y')
+                    ->sortable(),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('cat_puesto_id')
+                    ->label('Puesto')
+                    ->relationship('catPuesto', 'nombre_puesto')
                     ->searchable(),
-                TextColumn::make('puesto.employee.nombres')
-                    ->label('Empleado')
-                    ->formatStateUsing(fn ($record) => 
-                        trim(
-                            ($record->puesto->employee->nombres ?? '') . ' ' . 
-                            ($record->puesto->employee->apellido_paterno ?? '') . ' ' . 
-                            ($record->puesto->employee->apellido_materno ?? '')
-                        ) ?: 'Sin empleado'
-                    ),
-                TextColumn::make('observaciones')->limit(30),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
-            ->bulkActions([]);
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [];
     }
 
     public static function getPages(): array

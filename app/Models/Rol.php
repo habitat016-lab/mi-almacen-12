@@ -3,11 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Rol extends Model
 {
-    protected $table = 'roles';
-    
     protected $fillable = [
         'cat_puesto_id',
         'observaciones',
@@ -18,24 +17,41 @@ class Rol extends Model
         'permisos' => 'array',
     ];
 
-    public function catpuesto()
+    public function catPuesto(): BelongsTo
     {
-        return $this->belongsTo(catpuesto::class);
+        return $this->belongsTo(CatPuesto::class, 'cat_puesto_id');
     }
-    
-    // Accessor para mostrar el nombre del puesto
-    public function getNombrePuestoAttribute()
-    {
-        if ($this->puesto && $this->puesto->catPuesto) {
-            return $this->puesto->catPuesto->nombre_puesto;
-        }
-        return 'Puesto #' . $this->puesto_id;
-    }
-    
-    // Verificar si tiene permiso para un modelo y acción
-    public function tienePermiso($modelo, $accion)
+
+    public function getNivelPermisosAttribute(): string
     {
         $permisos = $this->permisos ?? [];
-        return isset($permisos[$modelo]) && in_array($accion, $permisos[$modelo]);
+
+        if (empty($permisos)) {
+            return 'sin_permisos';
+        }
+
+        $esAdmin = true;
+        $todosView = true;
+
+        foreach ($permisos as $modulo => $acciones) {
+            foreach (['view', 'create', 'update', 'delete'] as $accion) {
+                if (!($acciones[$accion] ?? false)) {
+                    $esAdmin = false;
+                }
+            }
+            if (!($acciones['view'] ?? false)) {
+                $todosView = false;
+            }
+        }
+
+        if ($esAdmin) {
+            return 'admin';
+        }
+
+        if ($todosView) {
+            return 'consultor';
+        }
+
+        return 'personalizado';
     }
 }

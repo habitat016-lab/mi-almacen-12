@@ -1,4 +1,5 @@
 <?php
+// Ruta completa: app/Filament/Resources/AsignacionCredencialResource/Pages/EditAsignacionCredencial.php
 
 namespace App\Filament\Resources\AsignacionCredencialResource\Pages;
 
@@ -15,5 +16,15 @@ class EditAsignacionCredencial extends EditRecord
         return [
             Actions\DeleteAction::make(),
         ];
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Credencial actualizada correctamente';
     }
 }
