@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión - Sistema</title>
+    <title>Iniciar Sesión</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 
-Roboto, Oxygen, Ubuntu, sans-serif;
+Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -16,7 +16,7 @@ Roboto, Oxygen, Ubuntu, sans-serif;
             justify-content: center;
             padding: 1rem;
         }
-        .login-container {
+        .login-box {
             background: white;
             border-radius: 1rem;
             box-shadow: 0 20px 40px rgba(0,0,0,0.2);
@@ -33,10 +33,6 @@ Roboto, Oxygen, Ubuntu, sans-serif;
             font-size: 1.8rem;
             margin-bottom: 0.5rem;
         }
-        .login-header p {
-            color: #666;
-            font-size: 0.9rem;
-        }
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -45,7 +41,6 @@ Roboto, Oxygen, Ubuntu, sans-serif;
             margin-bottom: 0.5rem;
             color: #555;
             font-weight: 500;
-            font-size: 0.9rem;
         }
         .form-group input {
             width: 100%;
@@ -59,25 +54,14 @@ Roboto, Oxygen, Ubuntu, sans-serif;
             outline: none;
             border-color: #667eea;
         }
-        .error-message {
+        .error-box {
             background-color: #fee;
             color: #c33;
             padding: 0.75rem;
             border-radius: 0.5rem;
             margin-bottom: 1.5rem;
-            font-size: 0.9rem;
-            text-align: center;
             border: 1px solid #fcc;
-        }
-        .success-message {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
             text-align: center;
-            border: 1px solid #a5d6a7;
         }
         button {
             width: 100%;
@@ -89,39 +73,24 @@ Roboto, Oxygen, Ubuntu, sans-serif;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.3s ease;
         }
         button:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
         }
-        button:active {
-            transform: translateY(0);
-        }
-        .info-footer {
-            margin-top: 2rem;
-            text-align: center;
-            color: #999;
-            font-size: 0.8rem;
-        }
     </style>
 </head>
 <body>
-    <div class="login-container">
+    <div class="login-box">
         <div class="login-header">
             <h1>Bienvenido</h1>
             <p>Sistema de Gestión</p>
         </div>
 
-        @if(session('mensaje'))
-            <div class="success-message">{{ session('mensaje') }}</div>
-        @endif
-
         @if($errors->any())
-            <div class="error-message">
-                @foreach($errors->all() as $error)
-                    {{ $error }}<br>
-                @endforeach
+            <div class="error-box">
+                {{ $errors->first('correo') }}
             </div>
         @endif
 
@@ -138,10 +107,6 @@ Roboto, Oxygen, Ubuntu, sans-serif;
             </div>
             <button type="submit">Iniciar Sesión</button>
         </form>
-
-        <div class="info-footer">
-            <p>Sistema interno - Acceso restringido</p>
-        </div>
     </div>
 </body>
 </html>

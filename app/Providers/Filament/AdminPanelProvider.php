@@ -29,8 +29,8 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             // Registro manual del recurso (FORZADO)
             ->resources([
-                //AsignacionCredencialResource::class,
-            ])
+                \App\Filament\Resources\CredencialResource::class,
+                ])
             // Descubrimiento automático (por si acaso)
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
