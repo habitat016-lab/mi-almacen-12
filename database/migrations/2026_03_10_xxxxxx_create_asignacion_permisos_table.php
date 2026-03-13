@@ -6,29 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('rols', function (Blueprint $table) {
+        Schema::create('asignacion_permisos', function (Blueprint $table) 
+{
             $table->id();
             $table->foreignId('cat_puesto_id')
                 ->nullable()
                 ->constrained('cat_puestos')
                 ->nullOnDelete()
-                ->comment('ID del puesto del catálogo (cat_puestos)');
+                ->comment('ID del puesto del catálogo (se muestra el 
+nombre)');
             $table->text('observaciones')->nullable();
             $table->json('permisos')->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('rols');
+        Schema::dropIfExists('asignacion_permisos');
     }
 };

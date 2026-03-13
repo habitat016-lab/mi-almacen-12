@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\RolResource\Pages;
+namespace App\Filament\Resources\RoleResource\Pages;
 
-use App\Filament\Resources\RolResource;
+use App\Filament\Resources\RoleResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
-class ListRols extends ListRecords
+class ListRoles extends ListRecords
 {
-    protected static string $resource = RolResource::class;
+    protected static string $resource = RoleResource::class;
 
     protected function getHeaderActions(): array
     {

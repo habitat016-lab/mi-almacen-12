@@ -8,19 +8,21 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('roles', function (Blueprint $table) {
+        Schema::create('asignacion_roles', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('puesto_id')->unique();
+            $table->foreignId('cat_puesto_id')
+                ->nullable()
+                ->constrained('cat_puestos')
+                ->nullOnDelete()
+                ->comment('ID del puesto del catálogo (se muestra el nombre)');
             $table->text('observaciones')->nullable();
             $table->json('permisos')->nullable();
             $table->timestamps();
-            
-            $table->foreign('puesto_id')->references('id')->on('puestos')->onDelete('cascade');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('roles');
+        Schema::dropIfExists('asignacion_roles');
     }
 };

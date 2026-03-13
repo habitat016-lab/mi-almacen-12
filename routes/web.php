@@ -1,26 +1,29 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\EmpleadoController;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
+use App\Http\Controllers\Auth\CredencialLoginController;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Ruta para listar empleados en la página pública
-Route::get('/empleados', [EmpleadoController::class, 'index']);
+Route::get('/test-matriz', function () {
+    return view('test-matriz');
+});
 
-// Ruta para ver detalle de un empleado (opcional, si quieres después)
-// Route::get('/empleados/{id}', [EmpleadoController::class, 'show']);
+Route::get('/login', [CredencialLoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [CredencialLoginController::class, 'login']);
+Route::post('/logout', [CredencialLoginController::class, 'logout'])->name('logout');
 
+Route::any('/register', function () {
+    abort(403, 'El registro de usuarios está deshabilitado');
+});
+
+Route::get('/admin/login', function () {
+    return redirect('/login');
+});
+
+// Si no tienes rutas protegidas, elimina este bloque
+// Route::middleware(['auth.credenciales'])->group(function () {
+//     // Aquí van las rutas protegidas
+// });
