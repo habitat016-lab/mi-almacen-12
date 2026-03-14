@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\CredencialLoginController;
 
-// ========== RUTAS PÚBLICAS ==========
 Route::get('/', function () {
     return view('welcome');
 });
@@ -19,21 +18,17 @@ Route::post('/login', [CredencialLoginController::class, 'login']);
 Route::post('/logout', [CredencialLoginController::class, 
 'logout'])->name('logout');
 
-// Bloquear registro público
 Route::any('/register', function () {
-    abort(403, 'El registro de usuarios está deshabilitado');
+    abort(403);
 });
 
-// Redirigir login de Filament al nuestro
 Route::get('/admin/login', function () {
     return redirect('/login');
 });
 
-// ========== RUTA DE PRUEBA DE SESIÓN ==========
-Route::get('/test-session', function() {
-    return [
-        'session_data' => session()->all(),
-        'session_id' => session()->getId(),
-        'has_autenticado' => session()->has('autenticado'),
-    ];
+// ========== RUTA DE PRUEBA PARA LA MATRIZ ==========
+Route::get('/test-permisos', function () {
+    return view('filament.forms.components.tabla-permisos', [
+        'getState' => fn() => [],
+    ]);
 });
