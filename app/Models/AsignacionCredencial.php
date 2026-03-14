@@ -2,13 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
-class AsignacionCredencial extends Model
+class AsignacionCredencial extends Authenticatable
 {
+    use Notifiable;
+
     protected $table = 'asignacion_credenciales';
+    protected $primaryKey = 'id';
 
     protected $fillable = [
         'id_empleado',
@@ -19,6 +23,27 @@ class AsignacionCredencial extends Model
     protected $hidden = [
         'llave_acceso',
     ];
+
+    public function getAuthIdentifierName()
+    {
+        return 'id';
+    }
+
+    public function getAuthPassword()
+    {
+        return $this->llave_acceso;
+    }
+
+    public function getNameAttribute()
+    {
+        if ($this->empleado) {
+            return trim($this->empleado->nombres . ' ' . 
+$this->empleado->apellido_paterno . ' ' . 
+$this->empleado->apellido_materno);
+        }
+
+        return 'Usuario';
+    }
 
     public function empleado(): BelongsTo
     {

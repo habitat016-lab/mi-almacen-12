@@ -28,3 +28,12 @@ Route::any('/register', function () {
 Route::get('/admin/login', function () {
     return redirect('/login');
 });
+
+// ========== RUTA DE PRUEBA DE SESIÓN ==========
+Route::get('/test-session', function() {
+    return [
+        'session_data' => session()->all(),
+        'session_id' => session()->getId(),
+        'has_autenticado' => session()->has('autenticado'),
+    ];
+});
