@@ -130,6 +130,9 @@ Illuminate\Foundation\Providers\ConsoleSupportServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\Filament\AdminPanelProvider::class,
+        
+        // 👇 NUEVO PROVIDER PARA EL MENÚ PERSONALIZADO
+        App\Providers\FilamentMenuServiceProvider::class,
 
     ],
 
