@@ -55,11 +55,10 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([])
             
-            // 👇 PRUEBA SIMPLE (texto rojo)
-            ->renderHook(
-                'panels::user-menu.before',
-                fn (): string => '<div style="background:red; color:white; 
-padding:10px; margin-right:10px; border-radius:5px;">PRUEBA</div>'
-            );
+            // 👇 HOOK DE PRUEBA
+           ->renderHook(
+    'panels::user-menu.before',
+    fn (): string => view('panel.recuadro-usuario')->render()
+);
     }
 }
