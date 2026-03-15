@@ -2,7 +2,6 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Resources\AsignacionCredencialResource;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -27,20 +26,21 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            // Registro manual del recurso (FORZADO)
-            ->resources([
-                \App\Filament\Resources\CredencialResource::class,
-                ])
-            // Descubrimiento automático (por si acaso)
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
-            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
+            ->login(null)
+            ->colors([
+                'primary' => Color::Amber,
+            ])
+            ->discoverResources(in: app_path('Filament/Resources'), for: 
+'App\\Filament\\Resources')
+            ->discoverPages(in: app_path('Filament/Pages'), for: 
+'App\\Filament\\Pages')
             ->pages([
                 Pages\Dashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
+            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 
+'App\\Filament\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
-               // Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -53,8 +53,13 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            ->authMiddleware([
-                Authenticate::class,
-            ]);
+            ->authMiddleware([])
+            
+            // 👇 PRUEBA SIMPLE (texto rojo)
+            ->renderHook(
+                'panels::user-menu.before',
+                fn (): string => '<div style="background:red; color:white; 
+padding:10px; margin-right:10px; border-radius:5px;">PRUEBA</div>'
+            );
     }
 }

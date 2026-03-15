@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\AsignacionCredencial;
+use App\Models\LoginAuditoria;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
 class CredencialLoginController extends Controller
@@ -20,16 +23,33 @@ class CredencialLoginController extends Controller
             'password' => 'required',
         ]);
 
-        if (Auth::guard('web')->attempt([
-            'correo' => $request->correo,
-            'password' => $request->password,
-        ])) {
-            return redirect()->intended('/admin');
+        $credencial = AsignacionCredencial::where('correo_electronico', 
+$request->correo)->first();
+
+        if (!$credencial || !Hash::check($request->password, 
+$credencial->llave_acceso)) {
+            return back()->withErrors([
+                'correo' => 'Credenciales incorrectas',
+            ])->withInput($request->except('password'));
         }
 
-        return back()->withErrors([
-            'correo' => 'Credenciales incorrectas',
-        ])->withInput($request->except('password'));
+        // ===== USAR AUTENTICACIÓN DE LARAVEL =====
+        Auth::guard('web')->login($credencial);
+        // ========================================
+
+        // Guardar en auditoría
+        $fingerprint = md5($request->ip() . $request->userAgent());
+        
+        LoginAuditoria::create([
+            'credencial_id' => $credencial->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'device_fingerprint' => $fingerprint,
+            'login_at' => now(),
+            'last_activity_at' => now(),
+        ]);
+
+        return redirect()->intended('/admin');
     }
 
     public function logout(Request $request)
