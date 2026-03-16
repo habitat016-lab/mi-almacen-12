@@ -2,19 +2,17 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Helpers\UserPanelHelper;
 use Filament\Http\Middleware\Authenticate;
-use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\Support\Colors\Color;
-use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
@@ -26,22 +24,16 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login(null)
+            ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => '#4caf50',
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 
 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 
 'App\\Filament\\Pages')
-            ->pages([
-                Pages\Dashboard::class,
-            ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 
 'App\\Filament\\Widgets')
-            ->widgets([
-                Widgets\AccountWidget::class,
-            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -53,12 +45,16 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            ->authMiddleware([])
-            
-            // 👇 HOOK DE PRUEBA
-           ->renderHook(
-    'panels::topbar.start',
-    fn (): string => view('panel.recuadro-usuario')->render()
-);
+            ->authMiddleware([
+                Authenticate::class,
+            ])
+            ->brandName('Mi Sistema')
+            ->favicon(asset('favicon.ico'))
+            ->viteTheme('resources/css/filament/admin/theme.css')
+            // Personalizar la vista del perfil de usuario
+            ->profile()
+            ->databaseNotifications()
+            // Configurar el avatar
+            ->avatar(fn($user) => UserPanelHelper::getUserAvatar($user));
     }
 }

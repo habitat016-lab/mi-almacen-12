@@ -2,47 +2,76 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'credencial_id',
+        'session_token',
+        'last_activity',
+        'ip_address',
+        'user_agent'
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
+    protected $casts = [
+        'last_activity' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    // Relación con credenciales
+    public function credencial()
     {
+        return $this->belongsTo(Credencial::class);
+    }
+
+    // Obtener empleado a través de credencial
+    public function empleado()
+    {
+        return $this->hasOneThrough(
+            Empleado::class,
+            Credencial::class,
+            'id', // Foreign key en credenciales
+            'id', // Foreign key en empleados
+            'credencial_id', // Local key en users
+            'empleado_id' // Local key en credenciales
+        );
+    }
+
+    // Obtener datos completos para el recuadro verde
+    public function getDisplayData()
+    {
+        if (!$this->credencial || !$this->credencial->empleado) {
+            return [
+                'nombre' => 'Usuario',
+                'email' => '',
+                'rol' => 'Sin rol',
+                'foto' => null
+            ];
+        }
+
+        $empleado = $this->credencial->empleado;
+        $puestoActual = $empleado->puestoActual();
+        $rol = null;
+
+        if ($puestoActual) {
+            $asignacionPermiso = $puestoActual->asignacionPermisoActual();
+            $rol = $asignacionPermiso ? $asignacionPermiso->role : null;
+        }
+
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'nombre' => $empleado->nombre_completo ?? 
+                       trim($empleado->nombre . ' ' . 
+$empleado->apellido_paterno . ' ' . $empleado->apellido_materno),
+            'email' => $this->credencial->email,
+            'rol' => $rol->nombre ?? 'Sin rol asignado',
+            'foto' => $empleado->foto,
+            'empleado_id' => $empleado->id
         ];
     }
 }
