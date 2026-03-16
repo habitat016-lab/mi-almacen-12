@@ -65,7 +65,7 @@ class EmployeeResource extends Resource
                             ]),
                     ]),
 
-                // ===== FOTO DEL EMPLEADO (VERSIÓN SIMPLE) =====
+                // ===== FOTO DEL EMPLEADO (VERSIÓN ESTABLE) =====
                 Section::make('Foto')
                     ->schema([
                         FileUpload::make('foto')
@@ -77,9 +77,9 @@ class EmployeeResource extends Resource
                             ->imageCropAspectRatio('1:1')
                             ->imageResizeTargetWidth(150)
                             ->imageResizeTargetHeight(150)
-                            ->helperText('JPG, PNG. 150x150px')
-                            ->avatar()
-                            ->alignCenter()
+                            ->visibility('public')
+                            ->helperText('JPG, PNG. Máximo 2MB. 
+150x150px')
                             ->columnSpanFull(),
                     ])
                     ->collapsible(false)
