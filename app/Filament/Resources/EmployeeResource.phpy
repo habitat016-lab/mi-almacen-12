@@ -16,6 +16,9 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Group;
+use Filament\Forms\Components\Actions;
+use Filament\Forms\Components\Actions\Action;
 
 class EmployeeResource extends Resource
 {
@@ -65,21 +68,57 @@ class EmployeeResource extends Resource
                             ]),
                     ]),
 
-                // ===== FOTO DEL EMPLEADO (VERSIÓN SIMPLE) =====
+                // ===== FOTO DEL EMPLEADO (CON BOTONES) =====
                 Section::make('Foto')
                     ->schema([
-                        FileUpload::make('foto')
-                            ->label('Fotografía')
-                            ->image()
-                            ->directory('empleados')
-                            ->maxSize(2048)
-                            ->imageResizeMode('cover')
-                            ->imageCropAspectRatio('1:1')
-                            ->imageResizeTargetWidth(150)
-                            ->imageResizeTargetHeight(150)
-                            ->helperText('JPG, PNG. 150x150px')
-                            ->avatar()
-                            ->alignCenter()
+                        Group::make()
+                            ->schema([
+                                FileUpload::make('foto')
+                                    ->label('')
+                                    ->image()
+                                    ->directory('empleados')
+                                    ->maxSize(2048)
+                                    ->imageResizeMode('cover')
+                                    ->imageCropAspectRatio('1:1')
+                                    ->imageResizeTargetWidth(150)
+                                    ->imageResizeTargetHeight(150)
+                                    ->avatar()
+                                    ->alignCenter()
+                                    ->extraAttributes([
+                                        'class' => 'mb-2'
+                                    ]),
+                                    
+                                Group::make()
+                                    ->schema([
+                                        Actions::make([
+                                            Action::make('subir')
+                                                ->label('Subir foto')
+                                                
+->icon('heroicon-o-cloud-upload')
+                                                ->color('success')
+                                                ->size('sm')
+                                                ->action(function 
+($livewire, $state) {
+                                                    // La acción la maneja 
+FileUpload automáticamente
+                                                }),
+                                                
+                                            Action::make('eliminar')
+                                                ->label('Eliminar')
+                                                ->icon('heroicon-o-trash')
+                                                ->color('danger')
+                                                ->size('sm')
+                                                ->requiresConfirmation()
+                                                ->action(function 
+($livewire, $set) {
+                                                    $set('foto', null);
+                                                }),
+                                        ])->columnSpanFull(),
+                                    ])
+                                    ->columns(2)
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(1)
                             ->columnSpanFull(),
                     ])
                     ->collapsible(false)

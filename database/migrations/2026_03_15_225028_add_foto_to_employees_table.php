@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('login_auditoria', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::table('employees', function (Blueprint $table) {
+            //
         });
     }
 
@@ -22,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('login_auditoria');
+        Schema::table('employees', function (Blueprint $table) {
+            //
+        });
     }
 };

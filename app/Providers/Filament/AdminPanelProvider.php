@@ -57,7 +57,7 @@ class AdminPanelProvider extends PanelProvider
             
             // 👇 HOOK DE PRUEBA
            ->renderHook(
-    'panels::user-menu.before',
+    'panels::topbar.start',
     fn (): string => view('panel.recuadro-usuario')->render()
 );
     }
