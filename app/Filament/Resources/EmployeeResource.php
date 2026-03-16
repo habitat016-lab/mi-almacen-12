@@ -13,9 +13,9 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Placeholder;
 
 class EmployeeResource extends Resource
 {
@@ -65,25 +65,19 @@ class EmployeeResource extends Resource
                             ]),
                     ]),
 
-                // ===== FOTO DEL EMPLEADO (VERSIÓN ESTABLE) =====
-                Section::make('Foto')
-                    ->schema([
-                        FileUpload::make('foto')
-                            ->label('Fotografía')
-                            ->image()
-                            ->directory('empleados')
-                            ->maxSize(2048)
-                            ->imageResizeMode('cover')
-                            ->imageCropAspectRatio('1:1')
-                            ->imageResizeTargetWidth(150)
-                            ->imageResizeTargetHeight(150)
-                            ->visibility('public')
-                            ->helperText('JPG, PNG. Máximo 2MB. 
-150x150px')
-                            ->columnSpanFull(),
-                    ])
-                    ->collapsible(false)
-                    ->compact(),
+                // ===== FOTO DEL EMPLEADO (CÓDIGO HERMANO) =====
+               Section::make('Foto')
+    ->schema([
+        Forms\Components\Placeholder::make('foto')
+            ->content(function ($record) {
+                if (!$record) {
+                    return 'Primero debe crear el empleado';
+                }
+                return view('panel.foto-empleado', ['empleado' => $record])->render();
+            })
+    ])
+    ->collapsible(false)
+    ->compact(),
             ]);
     }
 
