@@ -2,7 +2,6 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Helpers\UserPanelHelper;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -22,18 +21,19 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
+            ->authGuard('web')
             ->id('admin')
             ->path('admin')
             ->login()
             ->colors([
                 'primary' => '#4caf50',
             ])
-            ->discoverResources(in: app_path('Filament/Resources'), for: 
-'App\\Filament\\Resources')
-            ->discoverPages(in: app_path('Filament/Pages'), for: 
-'App\\Filament\\Pages')
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 
-'App\\Filament\\Widgets')
+            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
+            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
+->pages([
+\App\Filament\Pages\Dashboard::class,
+])
+            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -50,11 +50,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->brandName('Mi Sistema')
             ->favicon(asset('favicon.ico'))
-            ->viteTheme('resources/css/filament/admin/theme.css')
-            // Personalizar la vista del perfil de usuario
             ->profile()
-            ->databaseNotifications()
-            // Configurar el avatar
-            ->avatar(fn($user) => UserPanelHelper::getUserAvatar($user));
-    }
+           ->databaseNotifications();
+}
+
 }

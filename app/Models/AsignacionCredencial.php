@@ -2,17 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
-class AsignacionCredencial extends Authenticatable
+class AsignacionCredencial extends Model implements Authenticatable
 {
-    use Notifiable;
+    use AuthenticatableTrait, Notifiable;
 
     protected $table = 'asignacion_credenciales';
-    protected $primaryKey = 'id';
 
     protected $fillable = [
         'id_empleado',
@@ -22,105 +21,29 @@ class AsignacionCredencial extends Authenticatable
 
     protected $hidden = [
         'llave_acceso',
-        'remember_token',
     ];
 
-    protected $casts = [
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
-
-    /**
-     * Get the name of the unique identifier for the user.
-     */
-    public function getAuthIdentifierName()
-    {
-        return 'id';
-    }
-
-    /**
-     * Get the unique identifier for the user.
-     */
-    public function getAuthIdentifier()
-    {
-        return $this->{$this->getAuthIdentifierName()};
-    }
-
-    /**
-     * Get the password for the user.
-     */
     public function getAuthPassword()
     {
         return $this->llave_acceso;
     }
 
-    /**
-     * Get the remember token for the user.
-     */
-    public function getRememberToken()
+    public function empleado()
     {
-        return $this->remember_token;
+        return $this->belongsTo(Empleado::class, 'id_empleado');
     }
 
-    /**
-     * Set the remember token for the user.
-     */
-    public function setRememberToken($value)
+    public function user()
     {
-        $this->remember_token = $value;
+        return $this->hasOne(User::class, 'credencial_id');
     }
 
-    /**
-     * Get the column name for the remember token.
-     */
-    public function getRememberTokenName()
+    // Relación para notificaciones (opcional pero útil)
+    public function notifications()
     {
-        return 'remember_token';
-    }
-
-    /**
-     * Relación con el empleado
-     */
-    public function empleado(): BelongsTo
-    {
-        return $this->belongsTo(Employee::class, 'id_empleado');
-    }
-
-    /**
-     * Obtener el puesto actual del empleado
-     */
-    public function puestoActual(): HasOneThrough
-    {
-        return $this->hasOneThrough(
-            Puesto::class,
-            Employee::class,
-            'id',
-            'employee_id',
-            'id_empleado',
-            'id'
-        )->latest();
-    }
-
-    /**
-     * Accessor para el nombre del puesto
-     */
-    public function getPuestoNombreAttribute(): string
-    {
-        $puesto = $this->puestoActual?->first();
-        return $puesto?->catPuesto?->nombre_puesto ?? 'Sin puesto 
-asignado';
-    }
-
-    /**
-     * Accessor para el nombre completo del empleado
-     */
-    public function getNameAttribute(): string
-    {
-        if (!$this->empleado) {
-            return 'Usuario';
-        }
-        return trim($this->empleado->nombres . ' ' . 
-$this->empleado->apellido_paterno . ' ' . 
-$this->empleado->apellido_materno);
+        return 
+$this->morphMany('Illuminate\Notifications\DatabaseNotification', 
+'notifiable')
+                    ->orderBy('created_at', 'desc');
     }
 }

@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     'defaults' => [
         'guard' => 'web',
         'passwords' => 'users',
@@ -16,7 +15,7 @@ return [
 
     'providers' => [
         'credenciales' => [
-            'driver' => 'credenciales',
+            'driver' => 'eloquent',
             'model' => App\Models\AsignacionCredencial::class,
         ],
     ],
@@ -31,5 +30,4 @@ return [
     ],
 
     'password_timeout' => 10800,
-
 ];

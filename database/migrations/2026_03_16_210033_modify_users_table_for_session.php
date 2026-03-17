@@ -31,7 +31,7 @@ return new class extends Migration
             if (!Schema::hasColumn('users', 'credencial_id')) {
                 $table->foreignId('credencial_id')
                     ->nullable()
-                    ->constrained()
+                    ->constrained('credenciales')
                     ->nullOnDelete();
             }
 

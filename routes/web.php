@@ -6,7 +6,7 @@ use App\Http\Controllers\RoleController;
 
 // ========== RUTAS DE AUTENTICACIÓN ==========
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('/login');
 });
 
 Route::get('/test-matriz', function () {
