@@ -9,111 +9,126 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\ImageColumn;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\ViewField;
 
 class EmployeeResource extends Resource
 {
     protected static ?string $model = Employee::class;
+
     protected static ?string $navigationIcon = 'heroicon-o-users';
+    
+    protected static ?string $navigationGroup = 'Recursos Humanos';
+    
     protected static ?string $navigationLabel = 'Empleados';
+    
+    protected static ?string $pluralLabel = 'Empleados';
+    
+    protected static ?string $singularLabel = 'Empleado';
 
     public static function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                // ===== DATOS PERSONALES =====
-                Section::make('Datos Personales')
-                    ->schema([
-                        Grid::make(3)
-                            ->schema([
-                                TextInput::make('nombres')
-                                    ->required()
-                                    ->maxLength(255),
-                                TextInput::make('apellido_paterno')
-                                    ->required()
-                                    ->maxLength(255),
-                                TextInput::make('apellido_materno')
-                                    ->required()
-                                    ->maxLength(255),
-                            ]),
-                        Grid::make(2)
-                            ->schema([
-                                DatePicker::make('fecha_nacimiento')
-                                    ->required()
-                                    ->displayFormat('d/m/Y'),
-                                TextInput::make('telefono')
-                                    ->required()
-                                    ->tel()
-                                    ->maxLength(20),
-                            ]),
-                        Grid::make(2)
-                            ->schema([
-                                TextInput::make('rfc')
-                                    ->required()
-                                    ->maxLength(13)
-                                    ->unique(ignoreRecord: true),
-                                TextInput::make('curp')
-                                    ->required()
-                                    ->maxLength(18)
-                                    ->unique(ignoreRecord: true),
-                            ]),
-                    ]),
-
-                // ===== FOTO DEL EMPLEADO (CÓDIGO HERMANO) =====
-               Section::make('Foto')
-    ->schema([
-        Forms\Components\Placeholder::make('foto')
-            ->content(function ($record) {
-                if (!$record) {
-                    return 'Primero debe crear el empleado';
-                }
-                return view('panel.foto-empleado', ['empleado' => $record])->render();
-            })
-    ])
-    ->collapsible(false)
-    ->compact(),
-            ]);
-    }
+{
+    return $form
+        ->schema([
+            Section::make('Datos Personales')
+                ->schema([
+                    // ELIMINADO: numero_empleado (no existe)
+                    
+                    TextInput::make('nombres')
+                        ->label('Nombres')
+                        ->required()
+                        ->maxLength(100),
+                    
+                    TextInput::make('apellido_paterno')
+                        ->label('Apellido Paterno')
+                        ->required()
+                        ->maxLength(100),
+                    
+                    TextInput::make('apellido_materno')
+                        ->label('Apellido Materno')
+                        ->maxLength(100),
+                    
+                    TextInput::make('rfc')
+                        ->label('RFC')
+                        ->maxLength(20),
+                    
+                    TextInput::make('curp')
+                        ->label('CURP')
+                        ->maxLength(20),
+                    
+                    TextInput::make('telefono')
+                        ->label('Teléfono')
+                        ->tel()
+                        ->maxLength(20),
+                    
+                    DatePicker::make('fecha_nacimiento')
+                        ->label('Fecha de Nacimiento')
+                        ->format('Y-m-d')
+                        ->displayFormat('d/m/Y'),
+                    
+                    // Checkbox para activo (aunque no está en la tabla, lo manejaremos aparte)
+                    Toggle::make('activo')
+                        ->label('Activo')
+                        ->default(true)
+                        ->disabled(), // Solo informativo por ahora
+                ])->columns(2),
+            
+            // SECCIÓN DE FOTO - Usando nuestro componente unificado
+            Section::make('Foto del Empleado')
+                ->schema([
+                    ViewField::make('foto')
+                        ->view('components.foto-empleado')
+                        ->label('')
+                ])->columnSpanFull(),
+        ]);
+}
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                ImageColumn::make('foto')
-                    ->label('Foto')
-                    ->circular()
-                    ->size(50)
-                    ->defaultImageUrl(url('/images/default-avatar.png')),
+                Tables\Columns\TextColumn::make('numero_empleado')
+                    ->label('No. Empleado')
+                    ->searchable()
+                    ->sortable(),
                 
-                TextColumn::make('nombre_completo')
-                    ->label('Nombre')
-                    ->searchable(['nombres', 'apellido_paterno', 
+                Tables\Columns\TextColumn::make('nombre_completo')
+                    ->label('Nombre Completo')
+                    ->searchable(['nombre', 'apellido_paterno', 
 'apellido_materno'])
                     ->sortable(),
                 
-                TextColumn::make('rfc')
-                    ->label('RFC')
+                Tables\Columns\TextColumn::make('email')
+                    ->label('Correo')
                     ->searchable(),
                 
-                TextColumn::make('curp')
-                    ->label('CURP')
-                    ->searchable(),
-                
-                TextColumn::make('telefono')
+                Tables\Columns\TextColumn::make('telefono')
                     ->label('Teléfono'),
                 
-                TextColumn::make('created_at')
-                    ->label('Registro')
-                    ->dateTime('d/m/Y')
-                    ->sortable(),
+                Tables\Columns\IconColumn::make('activo')
+                    ->label('Estado')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('danger'),
+                
+                Tables\Columns\ImageColumn::make('foto')
+                    ->label('Foto')
+                    ->circular()
+                    ->size(40)
+                    ->defaultImageUrl(url('/images/default-avatar.png')),
             ])
-            ->filters([])
+            ->filters([
+                Tables\Filters\TernaryFilter::make('activo')
+                    ->label('Activos')
+                    ->placeholder('Todos')
+                    ->trueLabel('Activos')
+                    ->falseLabel('Inactivos'),
+            ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
@@ -127,7 +142,9 @@ class EmployeeResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            //
+        ];
     }
 
     public static function getPages(): array

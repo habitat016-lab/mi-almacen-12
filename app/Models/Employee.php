@@ -3,49 +3,72 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Employee extends Model
 {
     protected $table = 'employees';
-
+    
     protected $fillable = [
         'nombres',
         'apellido_paterno',
         'apellido_materno',
-        'fecha_nacimiento',
-        'telefono',
         'rfc',
         'curp',
-        'foto', // ← NUEVO CAMPO PARA LA FOTO
+        'foto',
+        'fecha_nacimiento',
+        'telefono'
     ];
 
     protected $casts = [
         'fecha_nacimiento' => 'date',
     ];
 
-    /**
-     * Relación con la tabla puestos (asignaciones de puesto)
-     */
-    public function puestos(): HasMany
-    {
-        return $this->hasMany(Puesto::class, 'employee_id');
-    }
+    protected $appends = ['foto_url', 'nombre_completo'];
 
-    /**
-     * Accessor para obtener el nombre completo del empleado
-     */
-    public function getNombreCompletoAttribute(): string
+    public function getFotoUrlAttribute()
+    {
+        if (!$this->foto) {
+            return null;
+        }
+
+        // Forzar puerto 8000 para desarrollo local
+        $baseUrl = 'http://localhost:8000';
+
+        Log::info('Procesando foto:', ['foto' => $this->foto]);
+
+        // Caso 1: La foto ya tiene ruta completa (empleados/xxxx.jpg)
+        if (strpos($this->foto, 'empleados/') === 0) {
+            return $baseUrl . '/storage/' . $this->foto;
+        }
+
+        // Caso 2: La foto ya tiene ruta completa (fotos/xxxx.jpg)
+        if (strpos($this->foto, 'fotos/') === 0) {
+            return $baseUrl . '/storage/' . $this->foto;
+        }
+
+        if (file_exists(storage_path('app/public/empleados/' . 
+        $this->foto))) {
+            return $baseUrl . '/storage/empleados/' . $this->foto;
+        }
+        
+        if (file_exists(storage_path('app/public/fotos/' . $this->foto)))
+            {
+            return $baseUrl . '/storage/fotos/' . $this->foto;
+        }
+        return $baseUrl . '/storage/fotos/' . $this->foto;
+    }
+    public function getNombreCompletoAttribute()
     {
         return trim($this->nombres . ' ' . $this->apellido_paterno . ' ' . 
 $this->apellido_materno);
     }
-
-    /**
-     * Accessor para obtener la URL de la foto
-     */
-    public function getFotoUrlAttribute(): ?string
+    public function credenciales()
     {
-        return $this->foto ? asset('storage/' . $this->foto) : null;
+        return $this->hasMany(AsignacionCredencial::class, 'id_empleado');
     }
+
+    public function scopeActivos($query)
+    {
+        return $query;
+        }
 }

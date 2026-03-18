@@ -1,150 +1,185 @@
 @props(['empleado' => null])
-
 @php
-    // Si empleado es un Closure, lo ejecutamos
-    if ($empleado instanceof \Closure) {
-        $empleado = $empleado();
+    if (!$empleado && method_exists($this, 'getRecord')) {
+        $empleado = $this->getRecord();
     }
 @endphp
 
-<div {{ $attributes->merge(['class' => 'foto-empleado-container']) }}>
-    <div style="margin: 20px 0; padding: 20px; border: 2px dashed #d1d5db; 
-border-radius: 12px; text-align: center; background: #f9fafb;">
-        <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 16px; 
-font-weight: 600; color: #374151;">Foto del Empleado</h3>
-        
-        <div id="foto-preview" style="margin-bottom: 20px;">
-            @if($empleado && $empleado->foto)
-                <img src="{{ Storage::url($empleado->foto) }}" 
-                     style="width: 150px; height: 150px; border-radius: 
-50%; object-fit: cover; border: 3px solid #d1fae5; box-shadow: 0 4px 6px 
-rgba(0,0,0,0.1);">
+<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border 
+border-gray-200 dark:border-gray-700 p-6 mb-4">
+    <div class="flex flex-col md:flex-row gap-6">
+        <!-- Columna izquierda: Visualización -->
+        <div class="flex-shrink-0 md:w-48 text-center">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white 
+mb-3">
+                Foto del Empleado
+            </h3>
+            
+            @if($empleado && $empleado->foto_url)
+                <img src="{{ $empleado->foto_url }}" 
+                     alt="Foto de {{ $empleado->nombre_completo }}"
+                     class="w-32 h-32 mx-auto rounded-full object-cover 
+border-4 border-primary-500 shadow-lg"
+                     id="foto-empleado-preview">
             @else
-                <div style="width: 150px; height: 150px; border-radius: 
-50%; background: #e5e7eb; margin: 0 auto; display: flex; align-items: 
-center; justify-content: center; color: #6b7280; border: 3px dashed 
-#9ca3af;">
-                    <span style="font-size: 14px;">Sin foto</span>
+                <div class="w-32 h-32 mx-auto rounded-full 
+bg-gradient-to-br from-primary-400 to-primary-600 flex items-center 
+justify-center border-4 border-primary-300 shadow-lg">
+                    <span class="text-4xl font-bold text-white">
+                        {{ $empleado ? substr($empleado->nombres, 0, 1) : 
+'?' }}
+                    </span>
                 </div>
+            @endif
+
+            @if($empleado && $empleado->foto)
+                <p class="text-xs text-gray-500 mt-2">
+                    {{ $empleado->foto }}
+                </p>
             @endif
         </div>
 
-        <input type="file" id="foto-input" accept="image/*" 
-style="display: none;">
+        <!-- Columna derecha: Acciones y formulario -->
+        <div class="flex-1">
+            @if(session('success'))
+                <div class="mb-4 p-3 bg-green-100 border border-green-400 
+text-green-700 rounded-lg">
+                    {{ session('success') }}
+                </div>
+            @endif
 
-        <div style="display: flex; gap: 10px; justify-content: center;">
-            <button 
-onclick="document.getElementById('foto-input').click()" 
-                    style="padding: 8px 20px; background: #10b981; color: 
-white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; 
-font-weight: 500; display: flex; align-items: center; gap: 8px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" 
-fill="none" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" 
-d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-                Subir foto
-            </button>
-            
-            <button id="eliminar-foto" 
-                    style="padding: 8px 20px; background: #ef4444; color: 
-white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; 
-font-weight: 500; display: flex; align-items: center; gap: 8px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" 
-fill="none" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" 
-d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 
-4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Eliminar
-            </button>
+            @if(session('error'))
+                <div class="mb-4 p-3 bg-red-100 border border-red-400 
+text-red-700 rounded-lg">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="mb-4 p-3 bg-red-100 border border-red-400 
+text-red-700 rounded-lg">
+                    <ul class="list-disc list-inside">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <!-- Formulario para subir foto -->
+            <form action="{{ route('employees.photo.update', 
+$empleado->id) }}" 
+                  method="POST" 
+                  enctype="multipart/form-data"
+                  class="mb-4">
+                @csrf
+                @method('PUT')
+                
+                <div class="mb-3">
+                    <label class="block text-sm font-medium text-gray-700 
+dark:text-gray-300 mb-2">
+                        Seleccionar nueva foto
+                    </label>
+                    <input type="file" 
+                           name="foto" 
+                           accept="image/jpeg,image/png,image/gif"
+                           class="block w-full text-sm text-gray-500 
+file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm 
+file:font-semibold file:bg-primary-50 file:text-primary-700 
+hover:file:bg-primary-100"
+                           required>
+                    <p class="mt-1 text-xs text-gray-500">
+                        Formatos: JPG, PNG, GIF. Máx 2MB
+                    </p>
+                </div>
+
+                <button type="submit" 
+                        class="inline-flex items-center px-4 py-2 
+bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium 
+rounded-lg transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" 
+stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" 
+stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 
+003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                    </svg>
+                    Subir Foto
+                </button>
+            </form>
+
+            <!-- Botón eliminar -->
+            @if($empleado && $empleado->foto)
+            <form action="{{ route('employees.photo.destroy', 
+$empleado->id) }}" 
+                  method="POST" 
+                  class="mb-4"
+                  onsubmit="return confirm('¿Eliminar foto 
+permanentemente?')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" 
+                        class="inline-flex items-center px-4 py-2 
+bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg 
+transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" 
+stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" 
+stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 
+0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 
+00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Eliminar Foto
+                </button>
+            </form>
+            @endif
+
+            <!-- Notas -->
+            <div class="text-xs text-gray-500 bg-gray-50 
+dark:bg-gray-900/50 p-3 rounded-lg">
+                <p>💡 Los cambios se guardan inmediatamente al subir o 
+eliminar la foto.</p>
+            </div>
         </div>
-
-        <p style="margin-top: 15px; font-size: 12px; color: #6b7280; 
-margin-bottom: 0;">
-            Formatos: JPG, PNG. Tamaño máximo: 2MB. 150x150px.
-        </p>
     </div>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const input = document.getElementById('foto-input');
-        const eliminarBtn = document.getElementById('eliminar-foto');
-        const preview = document.getElementById('foto-preview');
-        const empleadoId = {{ $empleado->id ?? 'null' }};
-
-        input?.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            if (file.size > 2 * 1024 * 1024) {
-                alert('La imagen no debe exceder 2MB');
-                return;
-            }
-
-            if (!file.type.match('image.*')) {
-                alert('Solo se permiten imágenes JPG o PNG');
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('foto', file);
-            formData.append('empleado_id', empleadoId);
-
-            preview.innerHTML = '<div style="width: 150px; height: 150px; 
-border-radius: 50%; background: #e5e7eb; margin: 0 auto; display: flex; 
-align-items: center; justify-content: center; color: 
-#6b7280;">Subiendo...</div>';
-
-            fetch('/api/subir-foto', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    preview.innerHTML = `<img 
-src="${data.url}?t=${Date.now()}" style="width: 150px; height: 150px; 
-border-radius: 50%; object-fit: cover; border: 3px solid #d1fae5; 
-box-shadow: 0 4px 6px rgba(0,0,0,0.1);">`;
-                } else {
-                    alert('Error al subir la foto');
-                    location.reload();
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error al subir la foto');
-                location.reload();
-            });
-        });
-
-        eliminarBtn?.addEventListener('click', function() {
-            if (!confirm('¿Estás seguro de eliminar la foto?')) return;
-
-            fetch('/api/eliminar-foto', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ empleado_id: empleadoId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    preview.innerHTML = `<div style="width: 150px; height: 
-150px; border-radius: 50%; background: #e5e7eb; margin: 0 auto; display: 
-flex; align-items: center; justify-content: center; color: #6b7280; 
-border: 3px dashed #9ca3af;">Sin foto</div>`;
-                } else {
-                    alert('Error al eliminar la foto');
-                }
-            });
-        });
-    });
-    </script>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fotoInput = document.querySelector('input[name="foto"]');
+    const preview = document.getElementById('foto-empleado-preview');
+    
+    if (fotoInput) {
+        fotoInput.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (preview) {
+                        preview.src = e.target.result;
+                    } else {
+                        // Crear preview si no existe
+                        const container = 
+document.querySelector('.flex-shrink-0');
+                        if (container) {
+                            const newImg = document.createElement('img');
+                            newImg.src = e.target.result;
+                            newImg.className = 'w-32 h-32 mx-auto 
+rounded-full object-cover border-4 border-primary-500 shadow-lg';
+                            newImg.id = 'foto-empleado-preview';
+                            
+                            const oldDiv = 
+container.querySelector('div.w-32');
+                            if (oldDiv) {
+                                oldDiv.replaceWith(newImg);
+                            } else {
+                                container.insertBefore(newImg, 
+container.children[1]);
+                            }
+                        }
+                    }
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+    }
+});
+</script>

@@ -21,18 +21,15 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
-            ->authGuard('web')
             ->id('admin')
             ->path('admin')
-            ->login()
+            ->login(\App\Filament\Pages\Auth\Login::class)
+            ->authGuard('filament')
             ->colors([
                 'primary' => '#4caf50',
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
-->pages([
-\App\Filament\Pages\Dashboard::class,
-])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->middleware([
                 EncryptCookies::class,
@@ -51,7 +48,6 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('Mi Sistema')
             ->favicon(asset('favicon.ico'))
             ->profile()
-           ->databaseNotifications();
-}
-
+            ->databaseNotifications();
+    }
 }
